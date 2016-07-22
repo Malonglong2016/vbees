@@ -32,7 +32,6 @@ import butterknife.OnClick;
 import cn.vbees.shop.R;
 import cn.vbees.shop.client.MyWebChromeClient;
 import cn.vbees.shop.utils.Log;
-import cn.vbees.shop.zxing.activity.CaptureActivity;
 
 public class MainActivity extends AppCompatActivity {
 
