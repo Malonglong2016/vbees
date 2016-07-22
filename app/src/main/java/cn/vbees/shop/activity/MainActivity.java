@@ -1,10 +1,17 @@
 package cn.vbees.shop.activity;
 
+import android.graphics.Bitmap;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Patterns;
 import android.view.View;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
 
@@ -14,7 +21,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import cn.vbees.shop.R;
 import cn.vbees.shop.client.MyWebChromeClient;
-import cn.vbees.shop.client.MyWebViewClient;
+import cn.vbees.shop.utils.Log;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
             settings.setDisplayZoomControls(false);
         }
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
     }
 
     @Override
@@ -75,4 +84,49 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
+    class MyWebViewClient extends WebViewClient {
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            Log.i("shouldOverrideUrlLoading:  " + url);
+            if(Patterns.WEB_URL.matcher(url).matches()){
+                return super.shouldOverrideUrlLoading(view, url);
+            }else{
+                return true;
+            }
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            // TODO Auto-generated method stub
+            super.onPageStarted(view, url, favicon);
+            Log.i("onPageStarted:  " + url);
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            // TODO Auto-generated method stub
+            super.onPageFinished(view, url);
+            Log.i("onPageFinished:  " + url);
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            handler.proceed();
+        }
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            Log.i("onReceivedError:  " );
+//            view.loadUrl("file:///android_asset/error/error.html");
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+//            view.loadUrl("file:///android_asset/error/error.html");
+        }
+    }
+
 }
