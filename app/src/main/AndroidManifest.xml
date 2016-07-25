@@ -39,7 +39,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".zxing.activity.CaptureActivity"
+        <activity android:name=".activity.CaptureActivity"
             android:screenOrientation="portrait"/>
     </application>
 
