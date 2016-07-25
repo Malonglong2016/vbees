@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">vbees</string>
+    <string name="app_name">烟具商城</string>
     <string name="scan_text">将条码/二维码放入框内, 即可自动扫描</string>
 </resources>

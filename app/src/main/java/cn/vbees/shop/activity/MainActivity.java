@@ -1,6 +1,7 @@
 package cn.vbees.shop.activity;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,16 +12,18 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
 
@@ -28,21 +31,20 @@ import com.orhanobut.logger.Logger;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import cn.vbees.shop.R;
-import cn.vbees.shop.client.MyWebChromeClient;
 import cn.vbees.shop.utils.Log;
+import cn.vbees.shop.views.ProgressWebView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @BindView(R.id.web)
-    WebView web;
-    @BindView(R.id.scan)
-    Button scan;
+    ProgressWebView web;
 
     private long exitTime = 0L;
     private String permission = Manifest.permission.CAMERA;
     private static final int permissionRequestCode = 77;
+
+    private String failingUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         Logger.init("LOG");
-        web.setWebChromeClient(new MyWebChromeClient());
         web.setWebViewClient(new MyWebViewClient());
         initWebView();
         web.loadUrl("http://shop.vbees.cn/mobile/");
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         //设置是否支持缩放
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         //自适应屏幕
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setVerticalScrollBarEnabled(false);
         web.setHorizontalScrollBarEnabled(false);
+        web.addJavascriptInterface(this, "vbees");
     }
 
     @Override
@@ -97,11 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 super.onBackPressed();
             }
         }
-    }
-
-    @OnClick(R.id.scan)
-    public void scan(){
-        chenkPermission();
     }
 
     public void chenkPermission(){
@@ -127,6 +125,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @JavascriptInterface
+    public void refersh(){
+       if (!TextUtils.isEmpty(failingUrl))
+           web.loadUrl(failingUrl);
+        else if (web.canGoBack())
+           web.goBack();
+    }
+
 
     private void startScanCode() {
         Intent i = new Intent(this, CaptureActivity.class);
@@ -136,9 +142,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            Bundle bundle = data.getExtras();
-            String scanResult = bundle.getString("result");
-            scan.setText(scanResult);
+            final String resuelt = data.getStringExtra(CaptureActivity.RESULT_KEY);
+            new AlertDialog.Builder(this)
+                    .setTitle("扫描结果")
+                    .setMessage(resuelt)
+                    .setNegativeButton("取消",null)
+                    .setPositiveButton("打开连接", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (Patterns.WEB_URL.matcher(resuelt).matches()) {
+                                web.loadUrl(resuelt);
+                            }
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -189,15 +206,18 @@ public class MainActivity extends AppCompatActivity {
             handler.proceed();
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-            Log.i("onReceivedError:  ");
-//            view.loadUrl("file:///android_asset/error/error.html");
+            MainActivity.this.failingUrl = request.getUrl().toString();
+            view.loadUrl("file:///android_asset/error/error.html");
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-//            view.loadUrl("file:///android_asset/error/error.html");
+            MainActivity.this.failingUrl = failingUrl;
+            Log.i("加载错误的网页------------------》"+failingUrl);
+            view.loadUrl("file:///android_asset/error/error.html");
         }
     }
 

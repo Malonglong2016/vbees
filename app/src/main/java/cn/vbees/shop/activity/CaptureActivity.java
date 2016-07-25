@@ -1,5 +1,7 @@
 package cn.vbees.shop.activity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -33,7 +35,7 @@ import cn.vbees.shop.zxing.view.ViewfinderView;
  *
  * @author Ryan.Tang
  */
-public class CaptureActivity extends AppCompatActivity implements Callback, OnClickListener {
+public class CaptureActivity extends BaseActivity implements Callback, OnClickListener {
 
     private CaptureActivityHandler handler;
     private ViewfinderView viewfinderView;
@@ -48,6 +50,7 @@ public class CaptureActivity extends AppCompatActivity implements Callback, OnCl
 
     private String check = "^[0-9]*$";
     private ImageButton zxing_back_imgbtn;
+    public static final String RESULT_KEY = "result";
 
     /**
      * Called when the activity is first created.
@@ -109,8 +112,7 @@ public class CaptureActivity extends AppCompatActivity implements Callback, OnCl
     }
 
     /**
-     * ����ɨ����
-     *
+     * 扫码结果处理
      * @param result
      */
     public void handleDecode(Result result) {
@@ -120,7 +122,9 @@ public class CaptureActivity extends AppCompatActivity implements Callback, OnCl
         if (resultString.equals("")) {
             Toast.makeText(CaptureActivity.this, "扫码结果为空", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(CaptureActivity.this, resultString, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            intent.putExtra(RESULT_KEY, resultString);
+            setResult(Activity.RESULT_OK);
         }
         CaptureActivity.this.finish();
     }

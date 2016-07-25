@@ -4,11 +4,19 @@
         <item name="android:windowBackground">@null</item>
         <item name="colorAccent">@color/colorPrimary</item>
         <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/viewfinder_laser</item>
         <item name="colorControlNormal">@color/colorPrimary</item>
         <item name="alertDialogTheme">@style/dialogTheme</item>
     </style>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
+    </style>
+
+    <style name="AppStartLoad" parent="AppBaseTheme">
+        <!--<item name="android:windowBackground">@mipmap/welcome</item>-->
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:fitsSystemWindows">true</item>
     </style>
 
     <style name="dialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
