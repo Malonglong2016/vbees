@@ -16,9 +16,6 @@
 
 package cn.vbees.shop.zxing.view;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -32,7 +29,12 @@ import android.view.View;
 
 import com.google.zxing.ResultPoint;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import cn.vbees.shop.R;
+import cn.vbees.shop.utils.DeviceInfo;
+import cn.vbees.shop.utils.Log;
 import cn.vbees.shop.zxing.camera.CameraManager;
 
 /**
@@ -43,67 +45,26 @@ import cn.vbees.shop.zxing.camera.CameraManager;
  */
 public final class ViewfinderView extends View {
 	private static final String TAG = "log";
-	/**
-	 * ˢ�½����ʱ��
-	 */
 	private static final long ANIMATION_DELAY = 10L;
 	private static final int OPAQUE = 0xFF;
 
-	/**
-	 * �ĸ���ɫ�߽Ƕ�Ӧ�ĳ���
-	 */
 	private int ScreenRate;
 
-	/**
-	 * �ĸ���ɫ�߽Ƕ�Ӧ�Ŀ��
-	 */
 	private static final int CORNER_WIDTH = 10;
-	/**
-	 * ɨ����е��м��ߵĿ��
-	 */
 	private static final int MIDDLE_LINE_WIDTH = 6;
 
-	/**
-	 * ɨ����е��м��ߵ���ɨ������ҵļ�϶
-	 */
 	private static final int MIDDLE_LINE_PADDING = 5;
 
-	/**
-	 * �м�������ÿ��ˢ���ƶ��ľ���
-	 */
 	private static final int SPEEN_DISTANCE = 5;
 
-	/**
-	 * �ֻ�����Ļ�ܶ�
-	 */
 	private static float density;
-	/**
-	 * �����С
-	 */
 	private static final int TEXT_SIZE = 16;
-	/**
-	 * �������ɨ�������ľ���
-	 */
 	private static final int TEXT_PADDING_TOP = 30;
 
-	/**
-	 * ���ʶ��������
-	 */
 	private Paint paint;
 
-	/**
-	 * �м们���ߵ����λ��
-	 */
 	private int slideTop;
 
-	/**
-	 * �м们���ߵ���׶�λ��
-	 */
-	private int slideBottom;
-
-	/**
-	 * ��ɨ��Ķ�ά��������������û��������ܣ���ʱ������
-	 */
 	private Bitmap resultBitmap;
 	private final int maskColor;
 	private final int resultColor;
@@ -113,36 +74,43 @@ public final class ViewfinderView extends View {
 	private Collection<ResultPoint> lastPossibleResultPoints;
 
 	boolean isFirst;
+	String content;
+	private float textStartX;
+	private Paint textPaint;
 
 	public ViewfinderView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
 		density = context.getResources().getDisplayMetrics().density;
-		// ������ת����dp
 		ScreenRate = (int) (20 * density);
 
 		paint = new Paint();
 		Resources resources = getResources();
 		maskColor = resources.getColor(R.color.viewfinder_mask);
 		resultColor = resources.getColor(R.color.result_view);
-
 		resultPointColor = resources.getColor(R.color.possible_result_points);
 		possibleResultPoints = new HashSet<ResultPoint>(5);
+		content = getResources().getString(R.string.scan_text);
+		textPaint = new Paint();
+		textPaint.setColor(Color.WHITE);
+		textPaint.setTextSize(TEXT_SIZE * density);
+		textPaint.setAlpha(0x90);
+		textPaint.setTypeface(Typeface.create("System", Typeface.BOLD));
+		float textLength = textPaint.measureText(content);
+		int displayWidth = new DeviceInfo().getDisplayWidth(context);
+		textStartX = (displayWidth - textLength)/2;
 	}
 
 	@Override
 	public void onDraw(Canvas canvas) {
-		// �м��ɨ�����Ҫ�޸�ɨ���Ĵ�С��ȥCameraManager�����޸�
 		Rect frame = CameraManager.get().getFramingRect();
 		if (frame == null) {
 			return;
 		}
 
-		// ��ʼ���м��߻��������ϱߺ����±�
 		if (!isFirst) {
 			isFirst = true;
 			slideTop = frame.top;
-			slideBottom = frame.bottom;
 		}
 
 		// ��ȡ��Ļ�Ŀ�͸�
@@ -151,8 +119,6 @@ public final class ViewfinderView extends View {
 
 		paint.setColor(resultBitmap != null ? resultColor : maskColor);
 
-		// ����ɨ����������Ӱ���֣����ĸ����֣�ɨ�������浽��Ļ���棬ɨ�������浽��Ļ����
-		// ɨ��������浽��Ļ��ߣ�ɨ�����ұߵ���Ļ�ұ�
 		canvas.drawRect(0, 0, width, frame.top, paint);
 		canvas.drawRect(0, frame.top, frame.left, frame.bottom + 1, paint);
 		canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1, paint);
@@ -164,8 +130,7 @@ public final class ViewfinderView extends View {
 			canvas.drawBitmap(resultBitmap, frame.left, frame.top, paint);
 		} else {
 
-			// ��ɨ�����ϵĽǣ��ܹ�8������
-			paint.setColor(0xFFF1F1F1);
+			paint.setColor(getResources().getColor(R.color.viewfinder_laser));
 			canvas.drawRect(frame.left, frame.top, frame.left + ScreenRate, frame.top + CORNER_WIDTH, paint);
 			canvas.drawRect(frame.left, frame.top, frame.left + CORNER_WIDTH, frame.top + ScreenRate, paint);
 			canvas.drawRect(frame.right - ScreenRate, frame.top, frame.right, frame.top + CORNER_WIDTH, paint);
@@ -183,13 +148,8 @@ public final class ViewfinderView extends View {
 			canvas.drawRect(frame.left + MIDDLE_LINE_PADDING * 2, slideTop - MIDDLE_LINE_WIDTH / 2, frame.right
 					- MIDDLE_LINE_PADDING * 2, slideTop + MIDDLE_LINE_WIDTH / 2, paint);
 
-			// ��ɨ����������
-			paint.setColor(Color.WHITE);
-			paint.setTextSize(TEXT_SIZE * density);
-			paint.setAlpha(0x40);
-			paint.setTypeface(Typeface.create("System", Typeface.BOLD));
-			canvas.drawText(getResources().getString(R.string.scan_text), frame.left,
-					(float) (frame.bottom + (float) TEXT_PADDING_TOP * density), paint);
+			canvas.drawText(content, textStartX,
+					(float) (frame.bottom + (float) TEXT_PADDING_TOP * density), textPaint);
 
 			Collection<ResultPoint> currentPossible = possibleResultPoints;
 			Collection<ResultPoint> currentLast = lastPossibleResultPoints;
@@ -212,7 +172,6 @@ public final class ViewfinderView extends View {
 				}
 			}
 
-			// ֻˢ��ɨ�������ݣ������ط���ˢ��
 			postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
 
 		}
@@ -226,7 +185,7 @@ public final class ViewfinderView extends View {
 	/**
 	 * Draw a bitmap with the result points highlighted instead of the live
 	 * scanning display.
-	 * 
+	 *
 	 * @param barcode
 	 *            An image of the decoded barcode.
 	 */
