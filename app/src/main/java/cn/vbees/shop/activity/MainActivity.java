@@ -32,6 +32,8 @@ import com.orhanobut.logger.Logger;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import cn.vbees.shop.R;
+import cn.vbees.shop.utils.ActivityManager;
+import cn.vbees.shop.utils.DeviceInfo;
 import cn.vbees.shop.utils.Log;
 import cn.vbees.shop.views.ProgressWebView;
 
@@ -69,7 +71,10 @@ public class MainActivity extends BaseActivity {
         //设置是否支持缩放
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        if (DeviceInfo.isNetworkConnected(this))
+            settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        else
+            settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         //自适应屏幕
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
@@ -90,22 +95,22 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (web.canGoBack()) {
-            web.goBack();
-        } else {
-            if (System.currentTimeMillis() - this.exitTime > 2000L) {
-                Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
-                this.exitTime = System.currentTimeMillis();
+        if (System.currentTimeMillis() - this.exitTime > 1000L) {
+            this.exitTime = System.currentTimeMillis();
+            if (web.canGoBack()) {
+                web.goBack();
             } else {
-                super.onBackPressed();
+                Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            ActivityManager.getInstance().exitApp(this);
         }
     }
 
-    public void chenkPermission(){
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED){
+    public void chenkPermission() {
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
             startScanCode();
-        }else {
+        } else {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
                 new android.support.v7.app.AlertDialog.Builder(this)
                         .setTitle("权限说明")
@@ -118,7 +123,7 @@ public class MainActivity extends BaseActivity {
                             }
                         })
                         .show();
-            }else{
+            } else {
                 ActivityCompat.requestPermissions(this, new String[]{permission}, permissionRequestCode);
             }
         }
@@ -126,11 +131,11 @@ public class MainActivity extends BaseActivity {
 
 
     @JavascriptInterface
-    public void refersh(){
-       if (!TextUtils.isEmpty(failingUrl))
-           web.loadUrl(failingUrl);
+    public void refersh() {
+        if (!TextUtils.isEmpty(failingUrl))
+            web.loadUrl(failingUrl);
         else if (web.canGoBack())
-           web.goBack();
+            web.goBack();
     }
 
 
@@ -146,7 +151,7 @@ public class MainActivity extends BaseActivity {
             new AlertDialog.Builder(this)
                     .setTitle("扫描结果")
                     .setMessage(resuelt)
-                    .setNegativeButton("取消",null)
+                    .setNegativeButton("取消", null)
                     .setPositiveButton("打开连接", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -161,11 +166,11 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case permissionRequestCode:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     startScanCode();
-                }else{
+                } else {
                     chenkPermission();
                 }
                 break;
@@ -216,7 +221,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             MainActivity.this.failingUrl = failingUrl;
-            Log.i("加载错误的网页------------------》"+failingUrl);
+            Log.i("加载错误的网页------------------》" + failingUrl);
             view.loadUrl("file:///android_asset/error/error.html");
         }
     }
