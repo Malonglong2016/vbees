@@ -92,6 +92,25 @@ public class MainActivity extends BaseActivity {
         web.setVerticalScrollBarEnabled(false);
         web.setHorizontalScrollBarEnabled(false);
         web.addJavascriptInterface(this, "vbees");
+        web.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                WebView.HitTestResult result = ((WebView) v).getHitTestResult();
+                if (result == null)
+                    return false;
+                int type = result.getType();
+                if (type == WebView.HitTestResult.EDIT_TEXT_TYPE)
+                    return false;
+                if (type == WebView.HitTestResult.PHONE_TYPE){
+                    try{
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("tel:"+result.getExtra())));
+                    }catch (Exception e){
+
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     @Override
