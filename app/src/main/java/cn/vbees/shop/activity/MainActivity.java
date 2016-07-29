@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
@@ -188,6 +189,12 @@ public class MainActivity extends BaseActivity {
             if (Patterns.WEB_URL.matcher(url).matches()) {
                 return super.shouldOverrideUrlLoading(view, url);
             } else {
+                if (!TextUtils.isEmpty(url)){
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    } catch (Exception e) {
+                    }
+                }
                 return true;
             }
         }
