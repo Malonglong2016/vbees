@@ -53,4 +53,9 @@ public class WelcomeActivity extends BaseActivity {
 		}
 		win.setAttributes(winParams);
 	}
+
+	@Override
+	public void onBackPressed() {
+
+	}
 }

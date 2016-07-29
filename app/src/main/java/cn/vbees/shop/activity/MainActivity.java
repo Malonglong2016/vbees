@@ -101,11 +101,25 @@ public class MainActivity extends BaseActivity {
             if (web.canGoBack()) {
                 web.goBack();
             } else {
-                Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                showExitDialog();
             }
         } else {
-            ActivityManager.getInstance().exitApp(this);
+            showExitDialog();
         }
+    }
+
+    public void showExitDialog(){
+        new AlertDialog.Builder(this)
+                .setTitle("退出提示")
+                .setMessage("确定要退出程序吗")
+                .setPositiveButton("退出", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityManager.getInstance().exitApp(MainActivity.this);
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     public void chenkPermission() {
