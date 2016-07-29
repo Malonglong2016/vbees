@@ -2,10 +2,10 @@
 
     <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@null</item>
-        <item name="colorAccent">@color/colorPrimary</item>
-        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/viewfinder_laser</item>
+        <item name="colorPrimary">@color/viewfinder_laser</item>
         <item name="colorPrimaryDark">@color/viewfinder_laser</item>
-        <item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlNormal">@color/viewfinder_laser</item>
         <item name="alertDialogTheme">@style/dialogTheme</item>
     </style>
     <!-- Base application theme. -->
