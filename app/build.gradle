@@ -48,4 +48,11 @@ dependencies {
     compile 'com.orhanobut:logger:1.15'
     compile 'com.google.zxing:core:3.2.1'
     compile files('libs/libammsdk.jar')
+    compile 'io.reactivex:rxjava:1.1.9'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.1.0'
+    compile 'com.google.code.gson:gson:2.6.2'
 }
