@@ -27,6 +27,11 @@ import android.webkit.WebViewClient;
 import android.widget.ZoomButtonsController;
 
 import com.orhanobut.logger.Logger;
+import com.tencent.mm.sdk.modelpay.PayReq;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
+import com.yanjushop.m.entry.Constants;
+import com.yanjushop.m.okhttp.RetrofitUtils;
 import com.yanjushop.m.utils.ActivityManager;
 import com.yanjushop.m.utils.DeviceInfo;
 
@@ -36,14 +41,21 @@ import java.util.regex.Pattern;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import cn.vbees.shop.R;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 import com.yanjushop.m.utils.L;
+import com.yanjushop.m.utils.ToastUtlis;
 import com.yanjushop.m.views.ProgressWebView;
+
+import org.json.JSONObject;
 
 public class MainActivity extends BaseActivity {
 
     @BindView(R.id.web)
     ProgressWebView web;
+    private IWXAPI api;
 
     private long exitTime = 0L;
     private String permission = Manifest.permission.CAMERA;
@@ -57,6 +69,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         Logger.init("LOG");
+        api = WXAPIFactory.createWXAPI(this, Constants.APP_ID);
         web.setWebViewClient(new MyWebViewClient());
         initWebView();
         web.loadUrl("http://shop.vbees.cn/mobile/");
@@ -221,35 +234,42 @@ public class MainActivity extends BaseActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, final String url) {
             L.i("shouldOverrideUrlLoading:  " + url);
+            if (TextUtils.isEmpty(url))
+                return true;
             if (Patterns.WEB_URL.matcher(url).matches()) {
+                if (url.contains("wx_pay")) {
+                    if (api.getWXAppSupportAPI() >= com.tencent.mm.sdk.constants.Build.PAY_SUPPORTED_SDK_INT)
+                        wechatPay(url);
+                    else
+                        ToastUtlis.makeTextLong(MainActivity.this, "您安装的微信版本不支持支付功能，请升级微信版本");
+                    return true;
+                }
                 return super.shouldOverrideUrlLoading(view, url);
             } else {
-                if (!TextUtils.isEmpty(url)) {
-                    try {
-                        if (url.contains("tel:")) {
-                            final String telUrl = url;
-                            String check = "[\\d\\-]{9,}";
-                            Pattern p = Pattern.compile(check);
-                            Matcher matcher = p.matcher(telUrl);
-                            if (matcher.find()) {
-                                String group = matcher.group();
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setTitle("温馨提示")
-                                        .setMessage("您确定要拨打客服热线:"+group)
-                                        .setNegativeButton("取消", null)
-                                        .setPositiveButton("拨打", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(telUrl)));
-                                            }
-                                        })
-                                        .show();
-                            }
-                        } else {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                try {
+                    if (url.contains("tel:")) {
+                        final String telUrl = url;
+                        String check = "[\\d\\-]{9,}";
+                        Pattern p = Pattern.compile(check);
+                        Matcher matcher = p.matcher(telUrl);
+                        if (matcher.find()) {
+                            String group = matcher.group();
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle("温馨提示")
+                                    .setMessage("您确定要拨打客服热线:" + group)
+                                    .setNegativeButton("取消", null)
+                                    .setPositiveButton("拨打", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(telUrl)));
+                                        }
+                                    })
+                                    .show();
                         }
-                    } catch (Exception e) {
+                    } else {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                     }
+                } catch (Exception e) {
                 }
                 return true;
             }
@@ -287,6 +307,46 @@ public class MainActivity extends BaseActivity {
             L.i("加载错误的网页------------------》" + failingUrl);
             view.loadUrl("file:///android_asset/error/error.html");
         }
+    }
+
+    private void wechatPay(String url) {
+        RetrofitUtils.getStringRequet().wechatPay(url)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        ToastUtlis.requestFailToast(MainActivity.this, "调起支付失败");
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        try {
+                            if (!TextUtils.isEmpty(s)) {
+                                JSONObject data = new JSONObject(s);
+                                if (data != null) {
+                                    PayReq req = new PayReq();
+                                    req.appId = data.getString("appid");
+                                    req.partnerId = data.getString("partnerid");
+                                    req.prepayId = data.getString("prepayid");
+                                    req.nonceStr = data.getString("noncestr");
+                                    req.timeStamp = data.getString("timestamp");
+                                    req.packageValue = data.getString("package");
+                                    req.sign = data.getString("sign");
+                                    req.extData = "app data"; // optional
+                                    api.sendReq(req);
+                                }
+                            }
+                        } catch (Exception e) {
+                            ToastUtlis.makeTextLong(MainActivity.this, "数据解析异常");
+                        }
+                    }
+                });
     }
 
 }
