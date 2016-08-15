@@ -9,14 +9,13 @@
     
 	<com.yanjushop.m.views.ProgressWheel
 		android:id="@+id/progress"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:indeterminate="true"
         android:padding="8dp"
 		android:background="@drawable/progress_bg"
-		wheel:matProg_barColor="#666666"
+		wheel:matProg_barColor="#d6d5d4"
 		wheel:matProg_progressIndeterminate="true"
-		wheel:matProg_spinSpeed="1.5"
 		wheel:matProg_barWidth="3dp"
-		wheel:matProg_circleRadius="35dp"/>
+		wheel:matProg_circleRadius="25dp"/>
 </LinearLayout>

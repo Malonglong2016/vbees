@@ -23,7 +23,7 @@
         <item name="colorAccent">@color/viewfinder_laser</item>
     </style>
 
-    <style name="my_progress_dialog" parent="@android:style/Theme.Dialog">
+    <style name="my_progress_dialog" parent="AppTheme">
         <item name="android:windowFrame">@null</item>
         <!--Dialog的windowFrame框为无 -->
         <item name="android:windowIsFloating">true</item>
@@ -31,7 +31,7 @@
         <item name="android:windowIsTranslucent">true</item>
         <!-- 是否半透明 -->
         <item name="android:windowNoTitle">true</item>
-        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:backgroundDimEnabled">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 

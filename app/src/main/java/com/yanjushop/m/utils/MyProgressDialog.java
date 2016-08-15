@@ -38,6 +38,11 @@ public class MyProgressDialog extends Dialog {
 			progress.stopSpinning();
 		}
 	}
-	
-	
+
+	@Override
+	public void show() {
+		super.show();
+		if (!progress.isSpinning())
+			progress.spin();
+	}
 }

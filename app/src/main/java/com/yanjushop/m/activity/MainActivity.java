@@ -142,7 +142,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (System.currentTimeMillis() - this.exitTime > 1000L) {
+        if (System.currentTimeMillis() - this.exitTime > 1200L) {
             this.exitTime = System.currentTimeMillis();
             if (web.canGoBack()) {
                 web.goBack();
