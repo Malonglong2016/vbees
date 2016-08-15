@@ -35,6 +35,14 @@ import com.yanjushop.m.entry.Events;
 import com.yanjushop.m.okhttp.RetrofitUtils;
 import com.yanjushop.m.utils.ActivityManager;
 import com.yanjushop.m.utils.DeviceInfo;
+import com.yanjushop.m.utils.L;
+import com.yanjushop.m.utils.MyProgressDialog;
+import com.yanjushop.m.utils.ToastUtlis;
+import com.yanjushop.m.views.ProgressWebView;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONObject;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,15 +52,8 @@ import butterknife.ButterKnife;
 import cn.vbees.shop.R;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.schedulers.Schedulers;
-
-import com.yanjushop.m.utils.L;
-import com.yanjushop.m.utils.ToastUtlis;
-import com.yanjushop.m.views.ProgressWebView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.json.JSONObject;
 
 public class MainActivity extends BaseActivity {
 
@@ -65,6 +66,7 @@ public class MainActivity extends BaseActivity {
     private static final int permissionRequestCode = 77;
 
     private String failingUrl;
+    private MyProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -337,15 +339,24 @@ public class MainActivity extends BaseActivity {
     private void wechatPay(String url) {
         RetrofitUtils.getStringRequet().wechatPay(url)
                 .subscribeOn(Schedulers.io())
+                .doOnSubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        if (progress == null)
+                            progress = new MyProgressDialog(MainActivity.this);
+                        progress.show();
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<String>() {
                     @Override
                     public void onCompleted() {
-
+                        progress.dismissProgress();
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        progress.dismissProgress();
                         ToastUtlis.requestFailToast(MainActivity.this, "调起支付失败");
                     }
 
