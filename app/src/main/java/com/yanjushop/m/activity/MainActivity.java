@@ -31,6 +31,7 @@ import com.tencent.mm.sdk.modelpay.PayReq;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.yanjushop.m.entry.Constants;
+import com.yanjushop.m.entry.Events;
 import com.yanjushop.m.okhttp.RetrofitUtils;
 import com.yanjushop.m.utils.ActivityManager;
 import com.yanjushop.m.utils.DeviceInfo;
@@ -49,6 +50,8 @@ import com.yanjushop.m.utils.L;
 import com.yanjushop.m.utils.ToastUtlis;
 import com.yanjushop.m.views.ProgressWebView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
 
 public class MainActivity extends BaseActivity {
@@ -68,11 +71,18 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         Logger.init("LOG");
         api = WXAPIFactory.createWXAPI(this, Constants.APP_ID);
         web.setWebViewClient(new MyWebViewClient());
         initWebView();
         web.loadUrl("http://shop.vbees.cn/mobile/");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 
     private void initWebView() {
@@ -185,6 +195,21 @@ public class MainActivity extends BaseActivity {
             web.loadUrl(failingUrl);
         else if (web.canGoBack())
             web.goBack();
+    }
+
+    /**
+     * 处理事件
+     *
+     * @param event
+     */
+    @Subscribe
+    public void onEventMainThread(Events event) {
+        switch (event){
+            case PAY_OK:
+                web.loadUrl("http://shop.vbees.cn/mobile/");
+                web.clearHistory();
+                break;
+        }
     }
 
 

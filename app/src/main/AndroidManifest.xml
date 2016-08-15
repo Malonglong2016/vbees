@@ -59,7 +59,10 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.yanjushop.m.wxapi.WXPayEntryActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:theme="@style/my_progress_dialog"
+            android:launchMode="singleTop"/>
     </application>
 
 </manifest>

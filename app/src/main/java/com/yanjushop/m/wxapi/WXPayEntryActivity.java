@@ -24,6 +24,7 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler{
         super.onCreate(savedInstanceState);
     	api = WXAPIFactory.createWXAPI(this, Constants.APP_ID);
         api.handleIntent(getIntent(), this);
+		L.d("onPayFinish, 进入了这个 = ");
     }
 
 	@Override
@@ -41,9 +42,19 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler{
 	public void onResp(BaseResp resp) {
 		L.d("onPayFinish, errCode = " + resp.errCode);
 		if (resp.getType() == ConstantsAPI.COMMAND_PAY_BY_WX) {
+			int code = resp.errCode;
+			String msg = "支付失败";
+			switch (code){
+				case BaseResp.ErrCode.ERR_OK:
+					msg = "支付成功";
+					break;
+				case BaseResp.ErrCode.ERR_USER_CANCEL:
+					msg = "取消支付";
+					break;
+			}
 			new android.support.v7.app.AlertDialog.Builder(this)
 					.setTitle("支付结果")
-					.setMessage(String.valueOf(resp.errCode))
+					.setMessage(msg)
 					.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
