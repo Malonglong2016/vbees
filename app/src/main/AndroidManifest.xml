@@ -43,7 +43,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activity.WelcomeActivity"
+            android:name="com.yanjushop.m.activity.WelcomeActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppStartLoad">
             <intent-filter>
@@ -52,10 +52,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.MainActivity"
+            android:name="com.yanjushop.m.activity.MainActivity"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".activity.CaptureActivity"
+            android:name="com.yanjushop.m.activity.CaptureActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.yanjushop.m.wxapi.WXPayEntryActivity"
             android:screenOrientation="portrait" />
     </application>
 
